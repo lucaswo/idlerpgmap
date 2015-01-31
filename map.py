@@ -11,6 +11,7 @@ path_to_db = os.path.expanduser(config['DEFAULT']['PathToIRPGDB'])
 pixel_width = int(config['DEFAULT']['PixelWidth'])
 font_path = os.path.join(scriptpath,config['DEFAULT']['Font'])
 img_scale = int(config['DEFAULT']['ImageScale'])
+bg_path = os.path.join(scriptpath,config['DEFAULT']['BackgoundPath'])
 
 csv.register_dialect('irpg', delimiter='\t', quoting=csv.QUOTE_NONE)
 
@@ -50,7 +51,11 @@ def read_data(path):
 def create_image(data):
         global pixel_width
 
-        myim = Image.new("RGB", (500*img_scale,500*img_scale), (255,255,255))
+        try:
+            myim = Image.open(str(bg_path))
+        except  IOError:
+            myim = Image.new("RGB", (500*img_scale,500*img_scale), (255,255,255))
+        
         draw = ImageDraw.Draw(myim)
         font = ImageFont.truetype(font_path, int(config['DEFAULT']['FontSize']))
 
@@ -67,14 +72,6 @@ def create_image(data):
                 color = (120,0,0)
 
             myim.paste(color, player.pixel())
-            description = [player.name, "level: " + player.level]
-            y = 0
-
-            if config['DEFAULT']['EnableText'] == '1':
-                for line in description:
-                    draw.text((player.true_X, player.true_Y+y), line, fill=color, font=font)
-                    y = y + 12
-
             color = (0,128,0)
             colorInc = int(255/int(config['DEFAULT']['TailHistory']))
             curPos = (player.true_X,player.true_Y)
@@ -84,6 +81,13 @@ def create_image(data):
                 draw.line([curPos,pos],fill=color,width=2)
                 curPos = pos
                 color = (color[0]+colorInc,color[1]+int(colorInc/2),color[2]+colorInc)
+
+            color = (0,0,0)
+            description = [player.name, "level: " + player.level]
+            y = 0
+            for line in description:
+                draw.text((player.true_X, player.true_Y+y), line, fill=color, font=font)
+                y = y + 12
 
         #myim.show()
         myim.save(os.path.join(os.path.expanduser(config['DEFAULT']['MapPath']),"map.png"))
