@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from PIL import Image, ImageDraw, ImageFont
 from configparser import ConfigParser
-import os,sys,time
+import os,sys,time, csv, operator
 
 scriptpath = os.path.join(os.getcwd(),os.path.dirname(sys.argv[0]));
 
@@ -11,65 +11,78 @@ path_to_db = os.path.expanduser(config['DEFAULT']['PathToIRPGDB'])
 pixel_width = int(config['DEFAULT']['PixelWidth'])
 font_path = os.path.join(scriptpath,config['DEFAULT']['Font'])
 
+csv.register_dialect('irpg', delimiter='\t', quoting=csv.QUOTE_NONE)
+
+
+class Player:
+    
+    def __init__(self,data):
+        self.name = data["# username"]
+        self.history = []
+        self.processData(data)
+
+    def processData(self,data):
+        assert(self.name== data["# username"])
+
+        true_X = 2*int(data["x pos"])
+        self.true_X = true_X-20 if true_X > 980 else true_X+5
+
+        true_Y = 2*int(data["y pos"])
+        self.true_Y = true_Y-35 if true_Y > 965 else true_Y+5
+
+        self.weapon = data["weapon"]
+        self.level = data["level"]
+        self.online = data["online"] != '0'
+        self.history += [(self.true_X,self.true_Y)]
+
+    def pixel(self):
+        return (self.true_X-pixel_width,self.true_Y-pixel_width,
+                self.true_X+pixel_width,self.true_Y+pixel_width)
+        
+players = dict()
+
 def read_data(path):
 
-	data = []
-	fd = open(path, 'r')
-	for line in fd:
-		data.append(line.split('\t'))
-
-	#print(xPosition , " " , yPosition)
-	# del data[0]
-	#print(data[0][xPosition], " " , data[0][yPosition])
-
-	return data
-
+        csvfile = open(path,'r')
+        return csv.DictReader(csvfile, dialect='irpg')
 
 def create_image(data):
-	global pixel_width
+        global pixel_width
 
-	myim = Image.new("RGB", (1000,1000), (255,255,255))
-	draw = ImageDraw.Draw(myim)
-	font = ImageFont.truetype(font_path, int(config['DEFAULT']['FontSize']))
+        myim = Image.new("RGB", (1000,1000), (255,255,255))
+        draw = ImageDraw.Draw(myim)
+        font = ImageFont.truetype(font_path, int(config['DEFAULT']['FontSize']))
 
-	xPosition = data[0].index("x pos")
-	yPosition = data[0].index("y pos")
-	player_name = data[0].index("# username")
-	player_weapon = data[0].index("weapon")
-	online = data[0].index("online")
-	player_level = data[0].index("level")
+        for p in data:
+            try:
+                players[p["# username"]].processData(p)
+            except:
+                players[p["# username"]] = Player(p)
 
-	for p in data[1:]:
-		true_X = 2*int(p[xPosition])
-		true_Y = 2*int(p[yPosition])
-		name = str(p[player_name])
-		weapon = str(p[player_weapon])
-		level = str(p[player_level])
-		color = (0,0,0)
+            player = players[p["# username"]]
+            color = (0,0,0)
 
-		if p[online] == '0':
-			color = (120,0,0)
+            if not player.online:
+                color = (120,0,0)
 
-		myim.paste(color, (true_X-pixel_width,true_Y-pixel_width,true_X+pixel_width,true_Y+pixel_width))
-		if true_X > 980:
-			true_X = true_X-20
-		else:
-			true_X = true_X+5
+            myim.paste(color, player.pixel())
+            description = [player.name, "level: " + player.level]
+            y = 0
 
-		if true_Y > 965:
-			true_Y = true_Y-35
-		else:
-			true_Y = true_Y+5
+            for line in description:
+                draw.text((player.true_X, player.true_Y+y), line, fill=color, font=font)
+                y = y + 12
 
-		description = [name, "level: " + level]
-		y = 0
+            color = (0,128,0)
+            colorInc = int(255/int(config['DEFAULT']['TailHistory']))
+            curPos = (player.true_X,player.true_Y)
+            for pos in reversed(player.history):
+                draw.line([curPos,pos],fill=color,width=2)
+                curPos = pos
+                color = (color[0]+colorInc,color[1]+int(colorInc/2),color[2]+colorInc)
 
-		for line in description:
-			draw.text((true_X, true_Y+y), line, fill=color, font=font)
-			y = y + 12
-
-	#myim.show()
-	myim.save(os.path.join(os.path.expanduser(config['DEFAULT']['MapPath']),"map.png"))
+        #myim.show()
+        myim.save(os.path.join(os.path.expanduser(config['DEFAULT']['MapPath']),"map.png"))
 
 while True:
     create_image(read_data(path_to_db))
