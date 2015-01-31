@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from PIL import Image, ImageDraw, ImageFont
 from configparser import ConfigParser
-import os,sys
+import os,sys,time
 
 scriptpath = os.path.join(os.getcwd(),os.path.dirname(sys.argv[0]));
 
@@ -69,7 +69,9 @@ def create_image(data):
 			y = y + 12
 
 	#myim.show()
-	myim.save("map.png")
+	myim.save(os.path.join(os.path.expanduser(config['DEFAULT']['MapPath']),"map.png"))
 
-read_data = read_data(path_to_db)
-create_image(read_data)
+while True:
+    create_image(read_data(path_to_db))
+    time.sleep(int(config['DEFAULT']['UpdateInterval']))
+
