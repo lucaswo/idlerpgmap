@@ -18,6 +18,7 @@ class Player:
     
     def __init__(self,data):
         self.name = data["# username"]
+        self.history = []
         self.processData(data)
 
     def processData(self,data):
@@ -32,6 +33,7 @@ class Player:
         self.weapon = data["weapon"]
         self.level = data["level"]
         self.online = data["online"] != '0'
+        self.history += [(self.true_X,self.true_Y)]
 
     def pixel(self):
         return (self.true_X-pixel_width,self.true_Y-pixel_width,
@@ -70,6 +72,14 @@ def create_image(data):
             for line in description:
                 draw.text((player.true_X, player.true_Y+y), line, fill=color, font=font)
                 y = y + 12
+
+            color = (0,128,0)
+            colorInc = int(255/int(config['DEFAULT']['TailHistory']))
+            curPos = (player.true_X,player.true_Y)
+            for pos in reversed(player.history):
+                draw.line([curPos,pos],fill=color,width=2)
+                curPos = pos
+                color = (color[0]+colorInc,color[1]+int(colorInc/2),color[2]+colorInc)
 
         #myim.show()
         myim.save(os.path.join(os.path.expanduser(config['DEFAULT']['MapPath']),"map.png"))
