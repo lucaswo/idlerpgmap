@@ -100,7 +100,7 @@ class Player:
         self.level = data["level"]
         self.online = data["online"] != '0'
         self.history += [(self.x,self.y)]
-        if len(self.history) == int(config['DEFAULT']['TailHistory']):
+        if len(self.history) > int(config['DEFAULT']['TailHistory']):
             del self.history[0]
 
 players = dict()
