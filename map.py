@@ -10,6 +10,7 @@ config.read(os.path.join(scriptpath,'map.conf'))
 path_to_db = os.path.expanduser(config['DEFAULT']['PathToIRPGDB'])
 pixel_width = int(config['DEFAULT']['PixelWidth'])
 font_path = os.path.join(scriptpath,config['DEFAULT']['Font'])
+bg_path = os.path.join(scriptpath,config['DEFAULT']['BackgoundPath'])
 
 csv.register_dialect('irpg', delimiter='\t', quoting=csv.QUOTE_NONE)
 
@@ -25,10 +26,10 @@ class Player:
         assert(self.name== data["# username"])
 
         true_X = 2*int(data["x pos"])
-        self.true_X = true_X-20 if true_X > 980 else true_X+5
+        self.true_X = true_X-40 if true_X > 980 else true_X+10
 
         true_Y = 2*int(data["y pos"])
-        self.true_Y = true_Y-35 if true_Y > 965 else true_Y+5
+        self.true_Y = true_Y-35 if true_Y > 965 else true_Y+10
 
         self.weapon = data["weapon"]
         self.level = data["level"]
@@ -49,7 +50,11 @@ def read_data(path):
 def create_image(data):
         global pixel_width
 
-        myim = Image.new("RGB", (1000,1000), (255,255,255))
+        try:
+            myim = Image.open(str(bg_path))
+        except  IOError:
+            myim = Image.new("RGB", (1000,1000), (255,255,255))
+        
         draw = ImageDraw.Draw(myim)
         font = ImageFont.truetype(font_path, int(config['DEFAULT']['FontSize']))
 
@@ -66,13 +71,7 @@ def create_image(data):
                 color = (120,0,0)
 
             myim.paste(color, player.pixel())
-            description = [player.name, "level: " + player.level]
-            y = 0
-
-            for line in description:
-                draw.text((player.true_X, player.true_Y+y), line, fill=color, font=font)
-                y = y + 12
-
+          
             color = (0,128,0)
             colorInc = int(255/int(config['DEFAULT']['TailHistory']))
             curPos = (player.true_X,player.true_Y)
@@ -80,6 +79,13 @@ def create_image(data):
                 draw.line([curPos,pos],fill=color,width=2)
                 curPos = pos
                 color = (color[0]+colorInc,color[1]+int(colorInc/2),color[2]+colorInc)
+
+            color = (0,0,0)
+            description = [player.name, "level: " + player.level]
+            y = 0
+            for line in description:
+                draw.text((player.true_X, player.true_Y+y), line, fill=color, font=font)
+                y = y + 12
 
         #myim.show()
         myim.save(os.path.join(os.path.expanduser(config['DEFAULT']['MapPath']),"map.png"))
