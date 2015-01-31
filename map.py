@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from PIL import Image, ImageDraw, ImageFont
 from configparser import ConfigParser
-import os,sys,time
+import os,sys,time, csv
 
 scriptpath = os.path.join(os.getcwd(),os.path.dirname(sys.argv[0]));
 
@@ -11,18 +11,22 @@ path_to_db = os.path.expanduser(config['DEFAULT']['PathToIRPGDB'])
 pixel_width = int(config['DEFAULT']['PixelWidth'])
 font_path = os.path.join(scriptpath,config['DEFAULT']['Font'])
 
+csv.register_dialect('irpg', delimiter='\t', quoting=csv.QUOTE_NONE)
+
 def read_data(path):
 
-	data = []
-	fd = open(path, 'r')
-	for line in fd:
-		data.append(line.split('\t'))
+#	data = []
+        csvfile = open(path,'r')
+        return csv.DictReader(csvfile, dialect='irpg')
+#	fd = open(path, 'r')
+#	for line in fd:
+#		data.append(line.split('\t'))
 
 	#print(xPosition , " " , yPosition)
 	# del data[0]
 	#print(data[0][xPosition], " " , data[0][yPosition])
 
-	return data
+#	return data
 
 
 def create_image(data):
@@ -32,22 +36,15 @@ def create_image(data):
 	draw = ImageDraw.Draw(myim)
 	font = ImageFont.truetype(font_path, int(config['DEFAULT']['FontSize']))
 
-	xPosition = data[0].index("x pos")
-	yPosition = data[0].index("y pos")
-	player_name = data[0].index("# username")
-	player_weapon = data[0].index("weapon")
-	online = data[0].index("online")
-	player_level = data[0].index("level")
-
-	for p in data[1:]:
-		true_X = 2*int(p[xPosition])
-		true_Y = 2*int(p[yPosition])
-		name = str(p[player_name])
-		weapon = str(p[player_weapon])
-		level = str(p[player_level])
+	for p in data:
+		true_X = 2*int(p["x pos"])
+		true_Y = 2*int(p["y pos"])
+		name = str(p["# username"])
+		weapon = str(p["weapon"])
+		level = str(p["level"])
 		color = (0,0,0)
 
-		if p[online] == '0':
+		if p["online"] == '0':
 			color = (120,0,0)
 
 		myim.paste(color, (true_X-pixel_width,true_Y-pixel_width,true_X+pixel_width,true_Y+pixel_width))
