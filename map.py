@@ -10,6 +10,7 @@ config.read(os.path.join(scriptpath,'map.conf'))
 path_to_db = os.path.expanduser(config['DEFAULT']['PathToIRPGDB'])
 pixel_width = int(config['DEFAULT']['PixelWidth'])
 font_path = os.path.join(scriptpath,config['DEFAULT']['Font'])
+img_scale = int(config['DEFAULT']['ImageScale'])
 
 csv.register_dialect('irpg', delimiter='\t', quoting=csv.QUOTE_NONE)
 
@@ -24,11 +25,11 @@ class Player:
     def processData(self,data):
         assert(self.name== data["# username"])
 
-        true_X = 2*int(data["x pos"])
-        self.true_X = true_X-20 if true_X > 980 else true_X+5
+        true_X = img_scale*int(data["x pos"])
+        self.true_X = true_X-img_scale*10 if true_X > img_scale*(500-10) else true_X+5
 
-        true_Y = 2*int(data["y pos"])
-        self.true_Y = true_Y-35 if true_Y > 965 else true_Y+5
+        true_Y = img_scale*int(data["y pos"])
+        self.true_Y = true_Y-img_scale*20 if true_Y > img_scale*(500-20) else true_Y+5
 
         self.weapon = data["weapon"]
         self.level = data["level"]
@@ -49,7 +50,7 @@ def read_data(path):
 def create_image(data):
         global pixel_width
 
-        myim = Image.new("RGB", (1000,1000), (255,255,255))
+        myim = Image.new("RGB", (500*img_scale,500*img_scale), (255,255,255))
         draw = ImageDraw.Draw(myim)
         font = ImageFont.truetype(font_path, int(config['DEFAULT']['FontSize']))
 
