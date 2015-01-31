@@ -70,9 +70,10 @@ def create_image(data):
             description = [player.name, "level: " + player.level]
             y = 0
 
-            for line in description:
-                draw.text((player.true_X, player.true_Y+y), line, fill=color, font=font)
-                y = y + 12
+            if config['DEFAULT']['EnableText'] == '1':
+                for line in description:
+                    draw.text((player.true_X, player.true_Y+y), line, fill=color, font=font)
+                    y = y + 12
 
             color = (0,128,0)
             colorInc = int(255/int(config['DEFAULT']['TailHistory']))
