@@ -77,6 +77,8 @@ def create_image(data):
             colorInc = int(255/int(config['DEFAULT']['TailHistory']))
             curPos = (player.true_X,player.true_Y)
             for pos in reversed(player.history):
+                if (max(abs(curPos[0]-pos[0]),abs(curPos[1]-pos[1])) > int(config['DEFAULT']['UpdateInterval'])*2):
+                    continue
                 draw.line([curPos,pos],fill=color,width=2)
                 curPos = pos
                 color = (color[0]+colorInc,color[1]+int(colorInc/2),color[2]+colorInc)
