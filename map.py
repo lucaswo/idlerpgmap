@@ -73,7 +73,7 @@ class Map:
             myim.save(tmp[1])
             os.chmod(tmp[1],stat.S_IROTH | stat.S_IWUSR | stat.S_IRUSR)
             os.rename(tmp[1],os.path.expanduser(self.path))
-            close(tmp[0])
+            os.close(tmp[0])
 
 class Player:
     
