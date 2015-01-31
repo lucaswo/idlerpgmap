@@ -60,7 +60,7 @@ def create_image(data):
             player = players[p["# username"]]
             color = (0,0,0)
 
-            if player.online:
+            if not player.online:
                 color = (120,0,0)
 
             myim.paste(color, player.pixel())
