@@ -1,7 +1,14 @@
 from PIL import Image, ImageDraw, ImageFont
+from configparser import ConfigParser
+import os,sys
 
-path_to_db = "irpg.db"
-pixel_width = 4
+scriptpath = os.path.join(os.getcwd(),os.path.dirname(sys.argv[0]));
+
+config = ConfigParser()
+config.read(os.path.join(scriptpath,'map.conf'))
+path_to_db = os.path.expanduser(config['DEFAULT']['PathToIRPGDB'])
+pixel_width = int(config['DEFAULT']['PixelWidth'])
+font_path = os.path.join(scriptpath,config['DEFAULT']['Font'])
 
 def read_data(path):
 
@@ -22,7 +29,7 @@ def create_image(data):
 
 	myim = Image.new("RGB", (1000,1000), (255,255,255))
 	draw = ImageDraw.Draw(myim)
-	font = ImageFont.truetype("Exo.otf", 12)
+	font = ImageFont.truetype(font_path, int(config['DEFAULT']['FontSize']))
 
 	xPosition = data[0].index("x pos")
 	yPosition = data[0].index("y pos")
