@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from PIL import Image, ImageDraw, ImageFont
 from configparser import ConfigParser
-import os,sys,time, csv, operator
+import os,sys,time, csv, operator, tempfile, stat
 
 scriptpath = os.path.join(os.getcwd(),os.path.dirname(sys.argv[0]));
 
@@ -65,7 +65,10 @@ class Map:
                     curPos = pos
                     color = (color[0]+colorInc,color[1]+int(colorInc/2),color[2]+colorInc)
             
-            myim.save(os.path.expanduser(self.path))
+            tmp = tempfile.mkstemp('.png')
+            myim.save(tmp[1])
+            os.chmod(tmp[1],stat.S_IROTH | stat.S_IWUSR | stat.S_IRUSR)
+            os.rename(tmp[1],os.path.expanduser(self.path))
 
 class Player:
     
